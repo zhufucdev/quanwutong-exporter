@@ -41,6 +41,11 @@ in
       default = null;
       description = "Token accessibile via MiTM. Prefix with \"file:\" for reading from one.";
     };
+    listenAddress = lib.mkOption {
+      type = lib.types.str;
+      default = null;
+      description = "Listen address for the HTTP server.";
+    };
     extraEnv = lib.mkOption {
       default = null;
       type = lib.types.nullOr lib.types.envVar;
@@ -68,7 +73,12 @@ in
           Group = cfg.group;
         }
         // {
-          ExecStart = lib.getExe cfg.package;
+          ExecStart = lib.concatStringsSep " " (
+            [
+              (lib.getExe cfg.package)
+            ]
+            ++ lib.optional (cfg.listenAddress != null) cfg.listenAddress
+          );
           Environment = [
             (lib.optionalString (cfg.token != null) "TOKEN=${cfg.token}")
           ]
