@@ -1,0 +1,64 @@
+diff --git a/src/encoding.rs b/src/encoding.rs
+index 8b47d09..5958fb9 100644
+--- a/src/encoding.rs
++++ b/src/encoding.rs
+@@ -15,6 +15,8 @@ use std::rc::Rc;
+ use std::sync::Arc;
+ use std::time::{SystemTime, UNIX_EPOCH};
+ 
++/// Helper functions for extending Encoders.
++pub mod helper;
+ #[cfg(feature = "openmetrics_protobuf")]
+ #[cfg_attr(docsrs, doc(cfg(feature = "openmetrics_protobuf")))]
+ #[cfg_attr(
+diff --git a/src/encoding/helper.rs b/src/encoding/helper.rs
+new file mode 100644
+index 0000000..66661d6
+--- /dev/null
++++ b/src/encoding/helper.rs
+@@ -0,0 +1,28 @@
++use crate::encoding::{GaugeValueEncoder, GaugeValueEncoderInner};
++
++///! Helper functions for extending Encoders
++
++macro_rules! for_both_mut {
++    ($self:expr, $inner:ident, $pattern:pat, $fn:expr) => {
++        match &mut $self.0 {
++            $inner::Text($pattern) => $fn,
++            #[cfg(feature = "openmetrics_protobuf")]
++            $inner::Protobuf($pattern) => $fn,
++            #[cfg(feature = "prometheus_protobuf")]
++            $inner::PrometheusProtobuf($pattern) => $fn,
++        }
++    };
++}
++
++/// Encode anything str into a [GaugeValueEncoder]
++pub fn gauge_encode_str(
++    encoder: &mut GaugeValueEncoder,
++    value: impl AsRef<str>,
++) -> Result<(), std::fmt::Error> {
++    for_both_mut!(
++        encoder,
++        GaugeValueEncoderInner,
++        e,
++        e.encode_str(value.as_ref())
++    )
++}
+diff --git a/src/encoding/text.rs b/src/encoding/text.rs
+index 53377cd..1dcff0c 100644
+--- a/src/encoding/text.rs
++++ b/src/encoding/text.rs
+@@ -636,6 +636,12 @@ impl GaugeValueEncoder<'_> {
+         self.writer.write_str(dtoa::Buffer::new().format(v))?;
+         Ok(())
+     }
++
++    pub fn encode_str(&mut self, v: &str) -> Result<(), std::fmt::Error> {
++        self.writer.write_str(" ")?;
++        self.writer.write_str(v)?;
++        Ok(())
++    }
+ }
+ 
+ pub(crate) struct ExemplarValueEncoder<'a> {

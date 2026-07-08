@@ -1,0 +1,20 @@
+[package]
+name = "quanwutong-exporter"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+axum = "0.8.9"
+prometheus-client = "0.25.0"
+reqwest = "0.13.4"
+rust_decimal = { version = "1.42.1", features = ["macros"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.150"
+thiserror = "2.0.18"
+tokio = { version = "1.52.3", features = ["fs", "rt-multi-thread"] }
+
+[package.metadata.patch]
+crates = ["prometheus-client"]
+
+[patch.crates-io]
+prometheus-client = { path = "./target/patch/prometheus-client-0.25.0" }
