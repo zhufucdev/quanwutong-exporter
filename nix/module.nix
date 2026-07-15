@@ -56,7 +56,6 @@ in
   config = lib.mkIf cfg.enable {
     users = lib.mkIf staticUser {
       users.${cfg.user} = {
-        inherit (cfg) home;
         isSystemUser = true;
         group = cfg.group;
       };
