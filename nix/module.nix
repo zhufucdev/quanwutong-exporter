@@ -83,7 +83,7 @@ in
             (lib.optionalString (cfg.token != null) "TOKEN=${cfg.token}")
           ]
           ++ lib.optional (cfg.extraEnv != null) cfg.extraEnv;
-          DynamicUser = true;
+          DynamicUser = !staticUser;
         };
     };
   };
